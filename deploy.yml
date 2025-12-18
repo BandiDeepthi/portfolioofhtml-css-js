@@ -1,0 +1,45 @@
+name: Deploy Portfolio to GitHub Pages
+
+on:
+  push:
+    branches: ["main", "master"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Verify Output Files
+        run: |
+          echo "Checking for HTML, CSS, and JS files..."
+          ls -R
+          if [ -f "index.html" ]; then echo "✅ index.html found"; else echo "❌ index.html missing" && exit 1; fi
+          if [ -d "css" ]; then echo "✅ css directory found"; else echo "❌ css directory missing" && exit 1; fi
+          if [ -d "js" ]; then echo "✅ js directory found"; else echo "❌ js directory missing" && exit 1; fi
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
